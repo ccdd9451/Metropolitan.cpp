@@ -7,6 +7,7 @@
 #include <vector>
 #include <string>
 #include <iostream>
+#include <sstream>
 #include <fstream>
 #include <stdexcept>
 
@@ -54,6 +55,7 @@ class Metropolitan {
     Metropolitan(std::string filename);
     void randomParameter();
     void applyParameter();
+    std::string serializedParam();
     // Func f(p0.x, p0.y, p1.x, p1.y);
     template<typename Func> void lineApply(Func f);
     // adapting SteerSuite
@@ -172,6 +174,16 @@ void Metropolitan::applyParameter() {
             }
         }
     }
+}
+
+std::string Metropolitan::serializedParam() {
+    std::ostringstream os;
+    os << "(";
+    for (auto &p: parameters) {
+        os << p << ",";
+    }
+    os << ")";
+    return os.str();
 }
 
 template<typename Func>
