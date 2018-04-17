@@ -113,6 +113,6 @@ void Metropolitan::_parseRefGroups() {
 
 int main()
 {
-    Metropolitan m("Metropolitan.json");
+    Metropolitan m("j_metropolitan.json");
     return 0;
 }
