@@ -247,7 +247,7 @@ void Metropolitan::orientedObstacleApply(Func f) {
         double diffX = (x0 - x1);
         double diffY = (y0 - y1);
         double lengthX = std::sqrt(diffX*diffX + diffY*diffY);
-        double theta = std::atan2(diffX, diffY)*180/PI;
+        double theta = std::atan2(diffY, diffX)*180/PI;
         f(centerX, centerZ, lengthX, theta);
     };
     lineApply(warp);
