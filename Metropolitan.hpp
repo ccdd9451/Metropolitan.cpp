@@ -184,6 +184,7 @@ void Metropolitan::randomParameter() {
     std::mt19937 gen(rd());
     std::uniform_real_distribution<double> rand(0., 1.);
 
+    parameters.clear();
     for (size_t i=0; i<numRefPoints; i++) {
         RefPoint& refP = refPoints[i];
         double param = refP.min + rand(gen) * (refP.max - refP.min);
