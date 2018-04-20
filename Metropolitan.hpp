@@ -17,8 +17,11 @@ using json = nlohmann::json;
 
 
 class Metropolitan {
+
+private:
     typedef int VertIndex;
     typedef std::vector<VertIndex> IndexGroup;
+    typedef std::array<double, 6> AgtConfInfo;
     struct Vertex {
         double x, y;
     };
@@ -42,6 +45,7 @@ class Metropolitan {
     std::vector<RefPoint> refPoints;
     std::vector<IndexGroup> indGroups;
     std::vector<IndeciesEdge> filledObs;
+    std::vector<AgtConfInfo> agentRegions;
 
     void parseJSON();
     void resetVertices();
@@ -49,25 +53,38 @@ class Metropolitan {
     void _parseRefPointoints();
     void _parseRefGroups();
     void _parseFilledObstacles();
+    void _parseAgentRegions();
 
-    public:
+    // Func f(p0.x, p0.y, p1.x, p1.y);
+    template<typename Func> void lineApply(Func f);
+
+public:
     std::vector<double> parameters;
+    Metropolitan();
     Metropolitan(std::string filename);
+    void load(std::string filename);
     void randomParameter();
     void applyParameter();
     std::string serializedParam();
-    // Func f(p0.x, p0.y, p1.x, p1.y);
-    template<typename Func> void lineApply(Func f);
+
     // adapting SteerSuite
     // Func f(centerX, centerZ, lengthX, theta)
     template<typename Func> void orientedObstacleApply(Func f);
     // Func f(xmin, xmax, ymin, ymax);
     template<typename Func> void obstacleBoxApply(Func f);
+    // Func f(xmin, xmax, ymin, ymax, xTar, yTar);
+    template<typename Func> void agentSpaceApply(Func f);
 };
 
 
+Metropolitan::Metropolitan(){
+}
 
 Metropolitan::Metropolitan(std::string filename){
+    load(filename);
+}
+
+void Metropolitan::load(std::string filename){
     std::ifstream file(filename);
     if(!file.is_open()) {
         throw std::runtime_error("not a file");
@@ -77,12 +94,14 @@ Metropolitan::Metropolitan(std::string filename){
     parseJSON();
 }
 
+
 void Metropolitan::parseJSON() {
     resetVertices();
     _parseEdges();
     _parseRefPointoints();
     _parseRefGroups();
     _parseFilledObstacles();
+    _parseAgentRegions();
 }
 
 void Metropolitan::resetVertices() {
@@ -104,6 +123,18 @@ void Metropolitan::_parseEdges() {
                 (int) *it,
                 (int) *(it+1)
                 });
+    }
+}
+
+void Metropolitan::_parseAgentRegions() {
+    const json& jAgents = metropolitan["agentRegions"];
+    for (auto it=jAgents.begin();
+            it< jAgents.end(); ) {
+        AgtConfInfo aci;
+        for (int i=0; i<6; i++, it++){
+            aci[i] = (double)* it;
+        }
+        agentRegions.push_back(aci);
     }
 }
 
@@ -222,13 +253,17 @@ void Metropolitan::orientedObstacleApply(Func f) {
     lineApply(warp);
 }
 
+template<typename Func>
+void Metropolitan::agentSpaceApply(Func f) {
+    for (auto& a: agentRegions) {
+        f(a[0], a[2], a[1], a[3], a[4], a[5]);
+    }
+}
+
 int main()
 {
     Metropolitan m("j_metropolitan.json");
     m.randomParameter();
     m.applyParameter();
-    m.lineApply([](double a, double b, double c, double d){
-            std::cout << "vert" << a << " " << b << " " << c << " " << d << std::endl;
-            });
     return 0;
 }
