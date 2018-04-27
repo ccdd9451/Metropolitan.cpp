@@ -12,6 +12,7 @@
 #include <stdexcept>
 
 #define PI 3.14159265359
+#define SQMETER_PER_AGENT 15
 
 using json = nlohmann::json;
 
@@ -21,7 +22,7 @@ class Metropolitan {
 private:
     typedef int VertIndex;
     typedef std::vector<VertIndex> IndexGroup;
-    typedef std::array<double, 6> AgtConfInfo;
+    typedef std::array<double, 7> AgtConfInfo;
     struct Vertex {
         double x, y;
     };
@@ -131,7 +132,7 @@ void Metropolitan::_parseAgentRegions() {
     for (auto it=jAgents.begin();
             it< jAgents.end(); ) {
         AgtConfInfo aci;
-        for (int i=0; i<6; i++, it++){
+        for (int i=0; i<7; i++, it++){
             aci[i] = (double)* it;
         }
         agentRegions.push_back(aci);
@@ -228,9 +229,9 @@ void Metropolitan::lineApply(Func f) {
 
 template<typename Func>
 void Metropolitan::obstacleBoxApply(Func f) {
-    for (auto& e: edges) {
-        const Vertex &v1=vertices[e.p1];
-        const Vertex &v2=vertices[e.p2];
+    for (auto& r: filledObs) {
+        const Vertex &v1=vertices[r.p1];
+        const Vertex &v2=vertices[r.p2];
         double xmin = std::min(v1.x, v2.x);
         double xmax = std::max(v1.x, v2.x);
         double ymin = std::min(v1.y, v2.y);
@@ -247,7 +248,7 @@ void Metropolitan::orientedObstacleApply(Func f) {
         double diffX = (x0 - x1);
         double diffY = (y0 - y1);
         double lengthX = std::sqrt(diffX*diffX + diffY*diffY);
-        double theta = std::atan2(diffX, diffY)*180/PI;
+        double theta = std::atan2(diffY, diffX)*180/PI;
         f(centerX, centerZ, lengthX, theta);
     };
     lineApply(warp);
@@ -255,9 +256,15 @@ void Metropolitan::orientedObstacleApply(Func f) {
 
 template<typename Func>
 void Metropolitan::agentSpaceApply(Func f) {
+    int numA = 0;
     for (auto& a: agentRegions) {
-        f(a[0], a[2], a[1], a[3], a[4], a[5]);
+        for (int i=0; i < a[6]/SQMETER_PER_AGENT; i++)
+        {
+            f(a[0], a[2], a[1], a[3], a[4], a[5]);
+            numA++;
+        }
     }
+    std::cout << "number agent generated:" << numA << std::endl;
 }
 
 int main()
