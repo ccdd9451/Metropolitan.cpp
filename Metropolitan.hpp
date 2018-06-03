@@ -219,8 +219,14 @@ void Metropolitan::applyParameter() {
 std::string Metropolitan::serializedParam() {
     std::ostringstream os;
     os << "(";
-    for (auto &p: parameters) {
-        os << p << ",";
+    if (parameters.size() > 0) {
+        for (auto &p: parameters) {
+            os << p << ",";
+        }
+    } else {
+        for (auto &p: refPoints) {
+            os << p.ref << ",";
+        }
     }
     os << ")";
     return os.str();
