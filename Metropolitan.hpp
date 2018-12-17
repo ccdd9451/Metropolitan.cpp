@@ -103,6 +103,7 @@ void Metropolitan::parseJSON() {
     _parseRefGroups();
     _parseFilledObstacles();
     _parseAgentRegions();
+    parameters.resize(numRefPoints);
 }
 
 void Metropolitan::resetVertices() {
