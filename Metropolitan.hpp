@@ -49,7 +49,6 @@ private:
     std::vector<AgtConfInfo> agentRegions;
 
     void parseJSON();
-    void resetVertices();
     void _parseEdges();
     void _parseRefPointoints();
     void _parseRefGroups();
@@ -63,9 +62,11 @@ public:
     std::vector<double> parameters;
     Metropolitan();
     Metropolitan(std::string filename);
+    void resetVertices();
     void load(std::string filename);
     void randomParameter();
     void applyParameter();
+    bool paramSatisified();
     std::string serializedParam();
 
     // adapting SteerSuite
@@ -115,6 +116,12 @@ void Metropolitan::resetVertices() {
         vertices.push_back(Vertex{(double) *it, (double)*(it+1)});
     }
 }
+
+bool Metropolitan::paramSatisified() {
+    return parameters.size() == numRefPoints;
+}
+
+
 
 void Metropolitan::_parseEdges() {
     const json& jEdges = metropolitan["edges"];
@@ -213,8 +220,14 @@ void Metropolitan::applyParameter() {
 std::string Metropolitan::serializedParam() {
     std::ostringstream os;
     os << "(";
-    for (auto &p: parameters) {
-        os << p << ",";
+    if (parameters.size() > 0) {
+        for (auto &p: parameters) {
+            os << p << ",";
+        }
+    } else {
+        for (auto &p: refPoints) {
+            os << p.ref << ",";
+        }
     }
     os << ")";
     return os.str();
